@@ -1,10 +1,9 @@
-﻿namespace RequestProcessingPipeline
+﻿namespace RequestProcessingPipeline;
+
+public static class FromTwentyToHundredExtensions
 {
-    public static class FromTwentyToHundredExtensions
+    public static IApplicationBuilder UseFromTwentyToHundred(this IApplicationBuilder builder)
     {
-        public static IApplicationBuilder UseFromTwentyToHundred(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<FromTwentyToHundredMiddleware>();
-        }
+        return builder.UseMiddleware<FromTwentyToHundredMiddleware>();
     }
 }

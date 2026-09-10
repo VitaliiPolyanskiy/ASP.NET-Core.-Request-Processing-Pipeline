@@ -1,37 +1,37 @@
-﻿namespace RequestProcessingPipeline
-{
-    public class FromElevenToNineteenMiddleware
-    {
-        private readonly RequestDelegate _next;
+﻿namespace RequestProcessingPipeline;
 
-        public FromElevenToNineteenMiddleware(RequestDelegate next)
+public class FromElevenToNineteenMiddleware
+{
+    private readonly RequestDelegate _next;
+
+    public FromElevenToNineteenMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        string? token = context.Request.Query["number"];
+
+        if (!int.TryParse(token, out int number))
         {
-            this._next = next;
+            // Видаємо остаточну відповідь клієнту
+            await context.Response.WriteAsync("Incorrect parameter");
+            return;
         }
 
-        public async Task Invoke(HttpContext context)
+        number = Math.Abs(number);
+
+        if (number < 11 || number > 19)
         {
-            string? token = context.Request.Query["number"];
-            try
-            {
-                int number = Convert.ToInt32(token);
-                number = Math.Abs(number);
-                if (number < 11 || number > 19)
-                {
-                    await _next.Invoke(context);  //Контекст запроса передаем следующему компоненту
-                }
-                else
-                {
-                    string[] Numbers = { "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
-                    // Выдаем окончательный ответ клиенту
-                    await context.Response.WriteAsync("Your number is " + Numbers[number - 11]);
-                }
-            }
-            catch (Exception)
-            {
-                // Выдаем окончательный ответ клиенту
-                await context.Response.WriteAsync("Incorrect parameter");
-            }
+            // Передаємо контекст запиту наступному компоненту
+            await _next.Invoke(context);
+        }
+        else
+        {
+            string[] numbers = { "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
+            // Видаємо остаточну відповідь клієнту
+            await context.Response.WriteAsync($"Your number is {numbers[number - 11]}");
         }
     }
 }

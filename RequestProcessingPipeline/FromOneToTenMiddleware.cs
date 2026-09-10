@@ -1,43 +1,52 @@
-﻿namespace RequestProcessingPipeline
-{
-    public class FromOneToTenMiddleware
-    {
-        private readonly RequestDelegate _next;
+﻿namespace RequestProcessingPipeline;
 
-        public FromOneToTenMiddleware(RequestDelegate next)
+public class FromOneToTenMiddleware
+{
+    private readonly RequestDelegate _next;
+
+    public FromOneToTenMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        string? token = context.Request.Query["number"]; // Отримуємо число з контексту запиту
+
+        if (!int.TryParse(token, out int number))
         {
-            this._next = next;
+            // Видаємо остаточну відповідь клієнту
+            await context.Response.WriteAsync("Incorrect parameter");
+            return;
         }
 
-        public async Task Invoke(HttpContext context)
-        {
-            string? token = context.Request.Query["number"]; // Получим число из контекста запроса
-            try
-            {
-                int number = Convert.ToInt32(token);
-                number = Math.Abs(number);
-                if(number == 10)
-                {
-                    // Выдаем окончательный ответ клиенту
-                    await context.Response.WriteAsync("Your number is ten"); // 
-                }
-                else
-                {
-                    string[] Ones = { "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" };
+        number = Math.Abs(number);
 
-                    // Любые числа больше 20, но не кратные 10
-                    if (number > 20)
-                        // Записываем в сессионную переменную number результат для компонента FromTwentyToHundredMiddleware
-                        context.Session.SetString("number", Ones[number % 10 - 1]); 
-                    else
-                        // Выдаем окончательный ответ клиенту
-                        await context.Response.WriteAsync("Your number is " + Ones[number - 1]); // от 1 до 9
-                }            
-            }
-            catch(Exception)
+        if (number == 0)
+        {
+            await context.Response.WriteAsync("Your number is zero");
+            return;
+        }
+
+        if (number == 10)
+        {
+            // Видаємо остаточну відповідь клієнту
+            await context.Response.WriteAsync("Your number is ten");
+        }
+        else
+        {
+            string[] ones = { "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" };
+
+            // Будь-які числа більші за 20, але не кратні 10
+            if (number > 20)
             {
-                // Выдаем окончательный ответ клиенту
-                await context.Response.WriteAsync("Incorrect parameter");
+                // Записуємо в сесійну змінну number результат для компонента FromTwentyToHundredMiddleware
+                context.Session.SetString("number", ones[number % 10 - 1]);
+            }
+            else
+            {
+                // Видаємо остаточну відповідь клієнту (від 1 до 9)
+                await context.Response.WriteAsync($"Your number is {ones[number - 1]}");
             }
         }
     }
